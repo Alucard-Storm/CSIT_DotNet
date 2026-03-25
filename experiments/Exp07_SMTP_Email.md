@@ -1,47 +1,40 @@
-# Experiment 07 — Send Email via SMTP Client
+# Experiment 07 — Sending Emails with C# (SMTP Client)
 
 **Subject:** CSIT-406 .NET Framework Lab
-**RGPV, Bhopal**
+**Location:** RGPV, Bhopal
 
 ---
 
-## Aim
+## 1. Aim
 
-Send emails using SMTP client with authentication and attachments.
+To write a program that sends an email (including a file attachment) using the Simple Mail Transfer Protocol (SMTP).
 
----
+## 2. Theory
 
-## Theory
+The `.NET Framework` allows you to send emails directly from your C# code using the `System.Net.Mail` namespace. To do this, your code talks to an Email Server (like Gmail or Outlook) and asks it to deliver your message.
 
-.NET provides the `System.Net.Mail` namespace for sending emails programmatically.
+### Main Classes Used
 
-| Class | Purpose |
+| Class Name | Explanation |
 |---|---|
-| `SmtpClient` | Handles connection to SMTP server and sending |
-| `MailMessage` | Represents the email (from, to, subject, body) |
-| `MailAddress` | Represents an email address |
-| `Attachment` | Attaches a file to the email |
-| `NetworkCredential` | Provides username/password for SMTP auth |
+| **`SmtpClient`** | The "mailman." This class connects to the email server and actually sends the mail. |
+| **`MailMessage`** | Represents the email itself. You use this to set the "To", "From", "Subject", and the message content. |
+| **`MailAddress`** | Used to make sure the email addresses are formatted correctly (like `name@example.com`). |
+| **`Attachment`** | Used to attach a file from your computer (like a PDF or TXT file) to the email. |
+| **`NetworkCredential`** | A security pass. It holds your username and password to prove to the email server that you are allowed to send mail. |
 
-**Common SMTP Servers:**
-
-| Provider | Server | Port | SSL |
-|---|---|---|---|
-| Gmail | smtp.gmail.com | 587 | Yes (TLS) |
-| Outlook | smtp.office365.com | 587 | Yes |
-| Yahoo | smtp.mail.yahoo.com | 587 | Yes |
-
-> **Note for Gmail:** Enable **"App Password"** under Google Account Security (if 2FA is on). Do not use your main password directly.
-
-> Real-world analogy: Automated order confirmation emails from Amazon or OTP emails from banks use SMTP exactly like this.
+*Instructional Example:* Whenever you buy something online and immediately receive a receipt in your email, or reset your password and receive a link, the company is using automated SMTP code just like this to send you that message.
 
 ---
 
-## Code
+## 3. Implementation Code
 
-### Part A — Simple Email
+### Part A: Sending a Simple Text Email
+
+This code shows the most basic way to send a plain-text email message.
 
 ```csharp
+// File: BasicEmail.cs
 using System;
 using System.Net;
 using System.Net.Mail;
@@ -50,37 +43,43 @@ namespace SMTPDemo
 {
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
             try
             {
-                MailMessage mail = new MailMessage();
-                mail.From = new MailAddress("your_email@gmail.com", "Lab Demo");
-                mail.To.Add("recipient@example.com");
-                mail.Subject = "CSIT-406 Lab Test Email";
-                mail.Body = "Hello!\n\nThis email was sent from a .NET SMTP client.\n\nRegards,\nLab 07";
-                mail.IsBodyHtml = false;
+                // 1. Create the email message
+                MailMessage email = new MailMessage();
+                email.From = new MailAddress("your_email@gmail.com", "Lab Student");
+                email.To.Add("friend@example.com");
+                email.Subject = "Hello from C#!";
+                email.Body = "Hi there,\n\nI sent this email using my own C# program in the lab.\n\nThanks!";
 
-                SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
-                smtp.EnableSsl = true;
-                smtp.Credentials = new NetworkCredential("your_email@gmail.com", "your_app_password");
-                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                // 2. Setup the connection to Gmail's server
+                SmtpClient mailServer = new SmtpClient("smtp.gmail.com", 587);
+                mailServer.EnableSsl = true; // Turn on security (SSL/TLS)
+                
+                // 3. Provide your login details
+                mailServer.Credentials = new NetworkCredential("your_email@gmail.com", "your_app_password");
 
-                smtp.Send(mail);
-                Console.WriteLine("Email sent successfully!");
+                // 4. Send the message
+                mailServer.Send(email);
+                Console.WriteLine("Success: The email was sent!");
             }
-            catch (SmtpException ex)
+            catch (Exception ex)
             {
-                Console.WriteLine("SMTP Error: " + ex.Message);
+                Console.WriteLine("Error: Could not send the email. " + ex.Message);
             }
         }
     }
 }
 ```
 
-### Part B — Email with HTML Body and Attachment
+### Part B: Sending an Email with an Attachment
+
+This code shows how to send an email that includes a file attachment.
 
 ```csharp
+// File: EmailWithAttachment.cs
 using System;
 using System.Net;
 using System.Net.Mail;
@@ -90,42 +89,37 @@ namespace SMTPWithAttachment
 {
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            // Create a temp file to attach
-            string filePath = @"C:\Temp\report.txt";
+            // First, let's create a temporary text file to attach
+            string filePath = @"C:\Temp\MyLabReport.txt";
             Directory.CreateDirectory(@"C:\Temp");
-            File.WriteAllText(filePath, "Lab Report - CSIT 406\nExperiment 7: SMTP Email Demo");
+            File.WriteAllText(filePath, "This is my lab report for Experiment 7.");
 
             try
             {
-                MailMessage mail = new MailMessage();
-                mail.From = new MailAddress("your_email@gmail.com", "Lab Demo");
-                mail.To.Add("recipient@example.com");
-                mail.CC.Add("cc_person@example.com");          // CC
-                mail.Subject = "Lab Report with Attachment";
-                mail.IsBodyHtml = true;
+                MailMessage email = new MailMessage();
+                email.From = new MailAddress("your_email@gmail.com");
+                email.To.Add("friend@example.com");
+                email.Subject = "Lab Report Attached";
+                email.Body = "Please find the attached text file.";
 
-                mail.Body = @"
-                    <h2>CSIT-406 Lab Report</h2>
-                    <p>Please find the <b>experiment report</b> attached.</p>
-                    <p>Sent from .NET SMTP Client</p>
-                ";
+                // Attach the file to the email
+                Attachment myFile = new Attachment(filePath);
+                email.Attachments.Add(myFile);
 
-                // Add attachment
-                Attachment attachment = new Attachment(filePath);
-                mail.Attachments.Add(attachment);
-
-                SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587)
+                // Setup the server and send
+                SmtpClient mailServer = new SmtpClient("smtp.gmail.com", 587)
                 {
                     EnableSsl = true,
                     Credentials = new NetworkCredential("your_email@gmail.com", "your_app_password")
                 };
 
-                smtp.Send(mail);
-                Console.WriteLine("Email with attachment sent successfully!");
+                mailServer.Send(email);
+                Console.WriteLine("Success: The email with the attachment was sent!");
 
-                attachment.Dispose();
+                // Clean up the attachment from memory
+                myFile.Dispose();
             }
             catch (Exception ex)
             {
@@ -138,36 +132,33 @@ namespace SMTPWithAttachment
 
 ---
 
-## Expected Output
+## 4. Expected Output
 
-```
-Email sent successfully!
-```
-
-*(Check recipient inbox — should receive email with subject and optional attachment.)*
-
----
-
-## Configuration Reminder
-
-```
-Gmail Setup:
-1. Go to myaccount.google.com
-2. Security → 2-Step Verification → App Passwords
-3. Generate password for "Mail" + "Windows Computer"
-4. Use that 16-character code in NetworkCredential
+```text
+Success: The email was sent!
+Success: The email with the attachment was sent!
 ```
 
 ---
 
-## Viva Questions
+## 5. Gmail Security Instructions
 
-1. What namespace is used for sending emails in .NET?
-2. What is the difference between `mail.To`, `mail.CC`, and `mail.BCC`?
-3. Why is port 587 used instead of port 25?
-4. What does `EnableSsl = true` do in `SmtpClient`?
-5. How do you send an HTML email instead of plain text?
+If you use a Gmail account, Google will not let you log in with your normal password from a C# program because it blocks "less secure apps." You must generate an **App Password**:
+
+1. Go to your Google Account website.
+2. Search for **App Passwords** in the security menu.
+3. Generate a new password specific for this app and use that 16-letter password in your `NetworkCredential` code instead of your real password.
 
 ---
 
-[Back to Index](../README.md)
+## 6. Viva / Discussion Questions
+
+1. **Protocol:** What does SMTP stand for, and what is it used for?
+2. **Security:** Why do we need to set `EnableSsl = true` when connecting to Gmail?
+3. **MIME Structure:** What happens if you forget to write `myFile.Dispose()` in a program that sends looping emails with attachments?
+4. **Ports:** Why do we connect to port `587` instead of the older port `25`?
+5. **Class Differences:** What is the specific difference in purpose between the `SmtpClient` class and the `MailMessage` class?
+
+---
+
+[Back to Main Index](../README.md)

@@ -1,46 +1,47 @@
 # Experiment 05 — Client Application to Control a Windows Service
 
 **Subject:** CSIT-406 .NET Framework Lab
-**RGPV, Bhopal**
+**Location:** RGPV, Bhopal
 
 ---
 
-## Aim
+## 1. Aim
 
-Create a client application to start, stop, and monitor a Windows Service.
+To design a simple client console application that can successfully start, stop, and monitor a Windows Service running on the local computer.
 
----
+## 2. Theory
 
-## Theory
+The `.NET Framework` allows developers to control running services without needing to type commands in the terminal. You can write code to control background programs using the `System.ServiceProcess.ServiceController` class. 
 
-The `System.ServiceProcess.ServiceController` class allows any .NET application to interact with Windows Services programmatically — no command line needed.
+### Core Properties and Methods of `ServiceController`
 
-| Method / Property | Description |
+| Property or Method | Explanation |
 |---|---|
-| `ServiceController(name)` | Connect to a named service |
-| `Start()` | Start the service |
-| `Stop()` | Stop the service |
-| `Pause()` | Pause the service |
-| `Continue()` | Resume a paused service |
-| `Refresh()` | Update the `Status` property |
-| `Status` | Returns current state: `Running`, `Stopped`, `Paused`, etc. |
-| `WaitForStatus(state)` | Block until service reaches the given state |
+| **`ServiceController("Name")`** | Connects your code to a specifically named Windows Service. |
+| **`Start()` / `Stop()`** | Sends a command telling Windows to start or stop the chosen service. |
+| **`Pause()` / `Continue()`** | Sends a command to temporarily freeze or resume the service. |
+| **`Refresh()`** | Asks Windows for the very latest updates on whether the service is currently running or stopped. |
+| **`Status`** | Tells you if the service is currently `Running`, `Stopped`, or `Paused`. |
+| **`WaitForStatus()`** | Tells your code to wait patiently until the service fully reaches the state you requested (for example, wait until it is fully stopped). |
 
-> Real-world analogy: Task Manager lets you start/stop processes — `ServiceController` is the programmatic equivalent for services.
+*Instructional Example:* Think about opening the Windows Task Manager. In Task Manager, you can right-click a program to end it immediately. The `ServiceController` class is simply the C# programming equivalent of doing that task.
 
 ---
 
-## Prerequisite
+## 3. Prerequisite Setup
 
-Make sure the service from **Experiment 04** (`FileLoggerService`) is installed before running this client.
+Before testing this client code, please make sure the background service you created in **Experiment 04** (`FileLoggerService`) is successfully installed on your computer.
 
 ---
 
-## Code
+## 4. Implementation Code
 
-### Console Client
+### Console Client Controller
+
+*Instruction:* Create a **Console Application (.NET Framework)** project and make sure to add a reference to `System.ServiceProcess`.
 
 ```csharp
+// File: Program.cs
 using System;
 using System.ServiceProcess;
 
@@ -48,97 +49,90 @@ namespace ServiceControlClient
 {
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            string serviceName = "FileLoggerService";
+            // Enter the exact name of your installed background service
+            string targetServiceName = "FileLoggerService";
 
-            Console.WriteLine("=== Windows Service Controller ===\n");
+            Console.WriteLine("=== Windows Service Manager ===");
 
             while (true)
             {
-                Console.WriteLine("\nOptions:");
-                Console.WriteLine("1. Check Status");
+                Console.WriteLine("\nMenu Options:");
+                Console.WriteLine("1. View Current Status");
                 Console.WriteLine("2. Start Service");
                 Console.WriteLine("3. Stop Service");
-                Console.WriteLine("4. Pause Service");
-                Console.WriteLine("5. Resume Service");
-                Console.WriteLine("6. Exit");
-                Console.Write("\nEnter choice: ");
+                Console.WriteLine("4. Exit Program");
+                Console.Write("\nEnter number choice: ");
 
-                string choice = Console.ReadLine();
+                string userChoice = Console.ReadLine();
 
-                using (ServiceController sc = new ServiceController(serviceName))
+                // Connect to the service
+                using (ServiceController controller = new ServiceController(targetServiceName))
                 {
                     try
                     {
-                        sc.Refresh();
+                        // Get the latest status from Windows
+                        controller.Refresh();
 
-                        switch (choice)
+                        switch (userChoice)
                         {
                             case "1":
-                                Console.WriteLine($"Status: {sc.Status}");
-                                Console.WriteLine($"Display Name: {sc.DisplayName}");
-                                Console.WriteLine($"Can Stop: {sc.CanStop}");
-                                Console.WriteLine($"Can Pause: {sc.CanPauseAndContinue}");
+                                Console.WriteLine($"\nCurrent Status: {controller.Status}");
+                                Console.WriteLine($"Display Name: {controller.DisplayName}");
+                                Console.WriteLine($"Can Be Stopped: {controller.CanStop}");
                                 break;
 
                             case "2":
-                                if (sc.Status == ServiceControllerStatus.Stopped)
+                                if (controller.Status == ServiceControllerStatus.Stopped)
                                 {
-                                    sc.Start();
-                                    sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(10));
-                                    Console.WriteLine("Service started successfully.");
+                                    Console.WriteLine("Starting service...");
+                                    controller.Start();
+                                    
+                                    // Make sure it fully starts before moving on
+                                    controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(10));
+                                    Console.WriteLine("Success: Service is now running.");
                                 }
                                 else
-                                    Console.WriteLine("Service is already running.");
+                                {
+                                    Console.WriteLine("Notice: Service is already running.");
+                                }
                                 break;
 
                             case "3":
-                                if (sc.Status == ServiceControllerStatus.Running)
+                                if (controller.Status == ServiceControllerStatus.Running)
                                 {
-                                    sc.Stop();
-                                    sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(10));
-                                    Console.WriteLine("Service stopped successfully.");
+                                    Console.WriteLine("Stopping service...");
+                                    controller.Stop();
+                                    
+                                    // Make sure it fully stops before moving on
+                                    controller.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(10));
+                                    Console.WriteLine("Success: Service was stopped.");
                                 }
                                 else
-                                    Console.WriteLine("Service is not running.");
+                                {
+                                    Console.WriteLine("Notice: Service is not currently running.");
+                                }
                                 break;
 
                             case "4":
-                                if (sc.CanPauseAndContinue && sc.Status == ServiceControllerStatus.Running)
-                                {
-                                    sc.Pause();
-                                    sc.WaitForStatus(ServiceControllerStatus.Paused, TimeSpan.FromSeconds(10));
-                                    Console.WriteLine("Service paused.");
-                                }
-                                else
-                                    Console.WriteLine("Service cannot be paused.");
-                                break;
-
-                            case "5":
-                                if (sc.Status == ServiceControllerStatus.Paused)
-                                {
-                                    sc.Continue();
-                                    sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(10));
-                                    Console.WriteLine("Service resumed.");
-                                }
-                                else
-                                    Console.WriteLine("Service is not paused.");
-                                break;
-
-                            case "6":
-                                Console.WriteLine("Exiting...");
+                                Console.WriteLine("Closing the program...");
                                 return;
 
                             default:
-                                Console.WriteLine("Invalid choice.");
+                                Console.WriteLine("Error: Invalid choice entered.");
                                 break;
                         }
                     }
-                    catch (InvalidOperationException ex)
+                    catch (InvalidOperationException)
                     {
-                        Console.WriteLine("Error: " + ex.Message);
-                        Console.WriteLine("Make sure the service is installed.");
+                        // Happens if the service name is wrong or not installed
+                        Console.WriteLine("\nError: The service could not be found. Is it installed?");
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Happens if you don't run Visual Studio as an Administrator
+                        Console.WriteLine("\nSecurity Error: Please run this code as an Administrator.");
                     }
                 }
             }
@@ -149,35 +143,44 @@ namespace ServiceControlClient
 
 ---
 
-## Expected Output
+## 5. Expected Output
 
-```
-=== Windows Service Controller ===
+```text
+=== Windows Service Manager ===
 
-Options:
-1. Check Status  2. Start  3. Stop  4. Pause  5. Resume  6. Exit
-Enter choice: 1
-Status: Stopped
-Display Name: File Logger Background Service
-Can Stop: True
+Menu Options:
+1. View Current Status
+2. Start Service
+3. Stop Service
+4. Exit Program
 
-Enter choice: 2
-Service started successfully.
+Enter number choice: 1
 
-Enter choice: 1
-Status: Running
+Current Status: Stopped
+Display Name: Enterprise File Logger
+Can Be Stopped: True
+
+Enter number choice: 2
+Starting service...
+Success: Service is now running.
+
+Enter number choice: 1
+
+Current Status: Running
+Display Name: Enterprise File Logger
+Can Be Stopped: True
 ```
 
 ---
 
-## Viva Questions
+## 6. Viva / Discussion Questions
 
-1. Which namespace contains the `ServiceController` class?
-2. What does `WaitForStatus()` do? Why is it needed?
-3. What happens if you call `Start()` on an already running service?
-4. How would you list all services installed on a machine using `ServiceController`?
-5. What permission level is required to start/stop a Windows Service?
+1. **Namespaces:** Which `.NET Framework` namespace provides the `ServiceController` class?
+2. **Waiting:** Why is it safer to use `WaitForStatus()` rather than just calling `Start()`?
+3. **Information Synchronization:** Why must you call the `Refresh()` method before checking the `Status` property?
+4. **Error Scenarios:** What exception is thrown if you try to stop a service but your program is not running as an Administrator?
+5. **Computer Verification:** Explain how you can check that the service successfully started, other than using this C# code (e.g., Services menu, Log files).
 
 ---
 
-[Back to Index](../README.md)
+[Back to Main Index](../README.md)

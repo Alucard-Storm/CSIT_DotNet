@@ -1,99 +1,133 @@
-# Experiment 10 — Database Operations with ADO.NET
+# Experiment 10 — Connecting to a Database using ADO.NET
 
 **Subject:** CSIT-406 .NET Framework Lab
-**RGPV, Bhopal**
+**Location:** RGPV, Bhopal
 
 ---
 
-## Aim
+## 1. Aim
 
-Connect to a database, execute queries, and manipulate data using ADO.NET.
+To write C# code that connects to a Microsoft SQL Server database, adds a record to a table, and reads data back out using ADO.NET.
 
----
+## 2. Theory
 
-## Theory
+**ADO.NET** is the data access technology in the .NET Framework. It provides all the necessary C# classes you need to securely talk to a database like SQL Server. 
 
-**ADO.NET** (ActiveX Data Objects .NET) is the data access layer of the .NET Framework, providing classes to interact with relational databases.
+### Important Classes in ADO.NET
 
-### Core Components
-
-| Component | Description |
+| ADO.NET Class | Explanation |
 |---|---|
-| `SqlConnection` | Opens a connection to SQL Server |
-| `SqlCommand` | Executes SQL queries/stored procedures |
-| `SqlDataReader` | Reads data row-by-row (forward-only, fast) |
-| `SqlDataAdapter` | Fills a `DataSet` from a query |
-| `DataSet` | In-memory representation of tables |
-| `DataTable` | Single in-memory table |
+| **`SqlConnection`** | Serves as the phone line between your C# code and the SQL Server database. |
+| **`SqlCommand`** | Represents the actual SQL instruction (like `SELECT` or `INSERT`) you want the database to run. |
+| **`SqlDataReader`** | Reads the data sent back from the database one row at a time. It is very fast, but you must keep the connection open while reading. |
+| **`SqlParameter`** | Used to safely pass user text into a SQL query. It prevents hackers from breaking your database (SQL Injection). |
 
-### Connection Modes
-
-| Mode | Class | Use Case |
-|---|---|---|
-| Connected | `SqlDataReader` | Real-time, streaming reads |
-| Disconnected | `DataSet` + `SqlDataAdapter` | Offline processing, binding |
-
-> Real-world analogy: A student result portal — ADO.NET connects to the SQL Server, fetches marks for a roll number, and displays them. The result page is generated using `SqlDataReader` in connected mode.
+*Instructional Example:* Think of a student portal login page. When you type your roll number and password, the C# code uses a `SqlConnection` to reach the database, and a `SqlCommand` to execute a `SELECT` query to check if your password matches.
 
 ---
 
-## Setup
+## 3. Database Setup (SQL Server)
+
+Before writing the C# code, open **SQL Server Management Studio (SSMS)** and run this SQL query to create a test table.
 
 ```sql
--- Run in SQL Server Management Studio (SSMS)
 CREATE DATABASE CollegeDB;
+GO
+
 USE CollegeDB;
+GO
 
 CREATE TABLE Students (
     RollNo INT PRIMARY KEY,
-    Name NVARCHAR(100),
-    Branch NVARCHAR(50),
-    CGPA DECIMAL(4,2)
+    FullName NVARCHAR(100)
 );
 
-INSERT INTO Students VALUES (101, 'Akshay', 'CSIT', 8.9);
-INSERT INTO Students VALUES (102, 'Priya',  'CSE',  9.1);
-INSERT INTO Students VALUES (103, 'Rahul',  'IT',   7.5);
+-- Add some sample generic students
+INSERT INTO Students (RollNo, FullName) VALUES (101, 'Akshay');
+INSERT INTO Students (RollNo, FullName) VALUES (102, 'Pawan');
+GO
 ```
 
 ---
 
-## Code
+## 4. Implementation Code
 
-### Part A — Connection and SELECT (Connected Mode)
+### Part A: Secure Data Insertion
+
+This code demonstrates how to safely insert a new student record into the database.
 
 ```csharp
+// File: InsertStudent.cs
 using System;
 using System.Data.SqlClient;
 
-namespace ADOConnected
+namespace DatabaseLab
 {
     class Program
     {
-        static string connStr = "Server=localhost;Database=CollegeDB;Integrated Security=True;";
-
-        static void Main()
+        static void Main(string[] args)
         {
-            using (SqlConnection conn = new SqlConnection(connStr))
+            // Enter the correct server settings here
+            string connectionDetails = "Server=localhost;Database=CollegeDB;Integrated Security=True;";
+
+            using (SqlConnection databaseConnection = new SqlConnection(connectionDetails))
             {
-                conn.Open();
-                Console.WriteLine("Connection State: " + conn.State);
-
-                string query = "SELECT * FROM Students";
-                SqlCommand cmd = new SqlCommand(query, conn);
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
+                // Open the connection securely
+                databaseConnection.Open();
+                
+                // Write the SQL query using @ signs for variables (Parameters)
+                string sqlQuery = "INSERT INTO Students (RollNo, FullName) VALUES (@roll, @name)";
+                
+                using (SqlCommand myCommand = new SqlCommand(sqlQuery, databaseConnection))
                 {
-                    Console.WriteLine("\n{0,-10} {1,-20} {2,-10} {3}", "RollNo", "Name", "Branch", "CGPA");
-                    Console.WriteLine(new string('-', 50));
+                    // Securely assign the actual values
+                    myCommand.Parameters.AddWithValue("@roll", 103);
+                    myCommand.Parameters.AddWithValue("@name", "Diksha");
 
-                    while (reader.Read())
+                    // Execute the query
+                    int rowsAdded = myCommand.ExecuteNonQuery();
+                    Console.WriteLine("Success! Students added: " + rowsAdded);
+                }
+            }
+        }
+    }
+}
+```
+
+### Part B: Reading Data (SELECT)
+
+This code demonstrates how to retrieve all records from the database and print them to the screen.
+
+```csharp
+// File: ReadStudents.cs
+using System;
+using System.Data.SqlClient;
+
+namespace DatabaseLab
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string connectionDetails = "Server=localhost;Database=CollegeDB;Integrated Security=True;";
+
+            using (SqlConnection databaseConnection = new SqlConnection(connectionDetails))
+            {
+                databaseConnection.Open();
+                
+                string sqlQuery = "SELECT RollNo, FullName FROM Students";
+                SqlCommand readCommand = new SqlCommand(sqlQuery, databaseConnection);
+
+                // Use the DataReader to go through the results row by row
+                using (SqlDataReader dataReader = readCommand.ExecuteReader())
+                {
+                    Console.WriteLine("Roll Number   Name");
+                    Console.WriteLine("-------------------------");
+
+                    // The Read() method moves to the next row until it runs out of data
+                    while (dataReader.Read())
                     {
-                        Console.WriteLine("{0,-10} {1,-20} {2,-10} {3}",
-                            reader["RollNo"],
-                            reader["Name"],
-                            reader["Branch"],
-                            reader["CGPA"]);
+                        Console.WriteLine(dataReader["RollNo"] + "           " + dataReader["FullName"]);
                     }
                 }
             }
@@ -102,172 +136,34 @@ namespace ADOConnected
 }
 ```
 
-### Part B — INSERT, UPDATE, DELETE
+---
 
-```csharp
-using System;
-using System.Data.SqlClient;
+## 5. Expected Output
 
-namespace ADOManipulation
-{
-    class Program
-    {
-        static string connStr = "Server=localhost;Database=CollegeDB;Integrated Security=True;";
-
-        static void ExecuteNonQuery(string sql)
-        {
-            using (SqlConnection conn = new SqlConnection(connStr))
-            {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                int rows = cmd.ExecuteNonQuery();
-                Console.WriteLine($"Rows affected: {rows}");
-            }
-        }
-
-        static void Main()
-        {
-            // INSERT
-            Console.WriteLine("--- INSERT ---");
-            ExecuteNonQuery("INSERT INTO Students VALUES (104, 'Sara', 'EC', 8.2)");
-
-            // UPDATE
-            Console.WriteLine("--- UPDATE ---");
-            ExecuteNonQuery("UPDATE Students SET CGPA = 9.5 WHERE RollNo = 101");
-
-            // DELETE
-            Console.WriteLine("--- DELETE ---");
-            ExecuteNonQuery("DELETE FROM Students WHERE RollNo = 103");
-
-            Console.WriteLine("\nOperations complete.");
-        }
-    }
-}
+**Output - Part A:**
+```text
+Success! Students added: 1
 ```
 
-### Part C — Parameterized Queries (Prevents SQL Injection)
-
-```csharp
-using System;
-using System.Data.SqlClient;
-
-namespace ADOParameterized
-{
-    class Program
-    {
-        static string connStr = "Server=localhost;Database=CollegeDB;Integrated Security=True;";
-
-        static void Main()
-        {
-            Console.Write("Enter Roll No to search: ");
-            int rollNo = int.Parse(Console.ReadLine());
-
-            using (SqlConnection conn = new SqlConnection(connStr))
-            {
-                conn.Open();
-
-                // Parameterized query — safe against SQL injection
-                string query = "SELECT * FROM Students WHERE RollNo = @RollNo";
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@RollNo", rollNo);  // Safe binding
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        Console.WriteLine("\nStudent Found:");
-                        Console.WriteLine("Name   : " + reader["Name"]);
-                        Console.WriteLine("Branch : " + reader["Branch"]);
-                        Console.WriteLine("CGPA   : " + reader["CGPA"]);
-                    }
-                    else
-                        Console.WriteLine("No student found with Roll No: " + rollNo);
-                }
-            }
-        }
-    }
-}
-```
-
-### Part D — Disconnected Mode (DataSet + DataAdapter)
-
-```csharp
-using System;
-using System.Data;
-using System.Data.SqlClient;
-
-namespace ADODisconnected
-{
-    class Program
-    {
-        static void Main()
-        {
-            string connStr = "Server=localhost;Database=CollegeDB;Integrated Security=True;";
-            string query = "SELECT * FROM Students";
-
-            SqlDataAdapter adapter = new SqlDataAdapter(query, connStr);
-            DataSet ds = new DataSet();
-
-            // Fill DataSet — connection opens and closes automatically
-            adapter.Fill(ds, "Students");
-
-            DataTable table = ds.Tables["Students"];
-
-            Console.WriteLine("Total Records: " + table.Rows.Count);
-            Console.WriteLine("\n{0,-10} {1,-20} {2}", "RollNo", "Name", "CGPA");
-            Console.WriteLine(new string('-', 40));
-
-            foreach (DataRow row in table.Rows)
-                Console.WriteLine("{0,-10} {1,-20} {2}", row["RollNo"], row["Name"], row["CGPA"]);
-        }
-    }
-}
+**Output - Part B:**
+```text
+Roll Number   Name
+-------------------------
+101           Akshay
+102           Pawan
+103           Diksha
 ```
 
 ---
 
-## Expected Output
+## 6. Viva / Discussion Questions
 
-**Part A:**
-```
-Connection State: Open
-
-RollNo     Name                 Branch     CGPA
---------------------------------------------------
-101        Akshay               CSIT       8.90
-102        Priya                CSE        9.10
-103        Rahul                IT         7.50
-```
-
-**Part B:**
-```
---- INSERT ---
-Rows affected: 1
---- UPDATE ---
-Rows affected: 1
---- DELETE ---
-Rows affected: 1
-```
-
-**Part C:**
-```
-Enter Roll No to search: 101
-Student Found:
-Name   : Akshay
-Branch : CSIT
-CGPA   : 9.50
-```
+1. **Definitions:** What does ADO.NET stand for?
+2. **Reading Data:** Why does compiling data into a `SqlDataReader` require the `SqlConnection` to stay completely open?
+3. **Execution Methods:** What is the difference between `ExecuteReader()` and `ExecuteNonQuery()`?
+4. **Database Security:** What is "SQL Injection" and how does using `SqlCommand.Parameters` prevent it?
+5. **Connection Strings:** What does `Integrated Security=True` mean in the connection string?
 
 ---
 
-## Viva Questions
-
-1. What is ADO.NET? Name its two modes of data access.
-2. What is the difference between `SqlDataReader` and `DataSet`?
-3. What does `ExecuteNonQuery()` return?
-4. What is a parameterized query and why is it important?
-5. What is the role of `SqlDataAdapter` in disconnected mode?
-
----
-
-[Back to Index](../README.md)
+[Back to Main Index](../README.md)

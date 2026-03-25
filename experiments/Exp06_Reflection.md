@@ -1,179 +1,162 @@
-# Experiment 06 — Reflection: Inspect Assemblies, Types, and Methods
+# Experiment 06 — Reflection: Inspecting Assemblies, Types, and Dynamic Invocation
 
 **Subject:** CSIT-406 .NET Framework Lab
-**RGPV, Bhopal**
+**Location:** RGPV, Bhopal
 
 ---
 
-## Aim
+## 1. Aim
 
-Use reflection to inspect assemblies, types, methods, and invoke them dynamically.
+To learn how to use the .NET Reflection subsystem to inspect your C# code while it is running, and to execute methods dynamically without requiring direct programming.
 
----
+## 2. Theory
 
-## Theory
+**Reflection** is a very powerful feature in the .NET Framework that allows a running program to look at its own structure. Instead of just running the code, Reflection allows your C# program to inspect what classes, methods, and properties exist inside your application while it is active.
 
-**Reflection** is the ability of a program to inspect and interact with its own metadata at runtime. It is available via the `System.Reflection` namespace.
+### Core Reflection Subsystem Classes
 
-| Class | Purpose |
+| Reflection Class | Explanation |
 |---|---|
-| `Assembly` | Load and inspect a .NET assembly |
-| `Type` | Get type info (class, methods, properties, fields) |
-| `MethodInfo` | Inspect and invoke a method |
-| `PropertyInfo` | Read/write properties dynamically |
-| `ConstructorInfo` | Create object instances dynamically |
+| **`Assembly`** | Represents an entire compiled project (like a .DLL or .EXE file). |
+| **`Type`** | Represents a specific class or data type. You can use this to find out everything about a class. |
+| **`MethodInfo`** | Represents a single method on a class. You can use this to run the method dynamically using `Invoke()`. |
+| **`PropertyInfo`** | Represents a single property on a class. You can use this to read or write the property's value. |
+| **`Activator`** | A static helper class used to create a new object instance dynamically (instead of using the standard `new` keyword). |
 
-> Real-world analogy: An IDE like Visual Studio uses reflection to show IntelliSense — it inspects your classes at runtime to suggest methods and properties.
+*Instructional Example:* Have you ever typed a dot (`.`) in Visual Studio and seen a pop-up list of available methods? Visual Studio uses Reflection in the background. It dynamically inspects your class files to see exactly what methods they contain, which allows it to suggest them to you.
 
 ---
 
-## Code
+## 3. Implementation Code
 
-### Part A — Inspect the Current Assembly
+### Part A: Inspecting a Class to See its Structure
+
+This code demonstrates how to take a simple completely standard class and use Reflection to view all of its information.
 
 ```csharp
+// File: TypeInspector.cs
 using System;
 using System.Reflection;
 
 namespace ReflectionDemo
 {
+    // A simple math class we want to inspect
     public class Calculator
     {
         public int Add(int a, int b) => a + b;
         public int Subtract(int a, int b) => a - b;
-        private double Divide(double a, double b) => a / b;
-        public string Name { get; set; } = "Basic Calculator";
+        private double InternalDivide(double a, double b) => a / b;
+        public string Version { get; set; } = "1.0.4";
     }
 
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            // Get type info
-            Type type = typeof(Calculator);
+            // The typeof keyword gets the reflection data for the class
+            Type inspectionTarget = typeof(Calculator);
 
-            Console.WriteLine("=== Type Info ===");
-            Console.WriteLine("Name: " + type.Name);
-            Console.WriteLine("Namespace: " + type.Namespace);
-            Console.WriteLine("Full Name: " + type.FullName);
+            Console.WriteLine("=== Class Details ===");
+            Console.WriteLine("Class Name: " + inspectionTarget.Name);
+            Console.WriteLine("Namespace: " + inspectionTarget.Namespace);
 
-            // List all public methods
-            Console.WriteLine("\n=== Public Methods ===");
-            foreach (MethodInfo method in type.GetMethods())
-                Console.WriteLine($" - {method.Name}({string.Join(", ", Array.ConvertAll(method.GetParameters(), p => p.ParameterType.Name + " " + p.Name))}) : {method.ReturnType.Name}");
-
-            // List all properties
-            Console.WriteLine("\n=== Properties ===");
-            foreach (PropertyInfo prop in type.GetProperties())
-                Console.WriteLine($" - {prop.Name} : {prop.PropertyType.Name}");
-        }
-    }
-}
-```
-
-### Part B — Dynamic Method Invocation
-
-```csharp
-using System;
-using System.Reflection;
-
-namespace ReflectionInvoke
-{
-    public class Calculator
-    {
-        public int Add(int a, int b) => a + b;
-        public int Multiply(int a, int b) => a * b;
-    }
-
-    class Program
-    {
-        static void Main()
-        {
-            Type type = typeof(Calculator);
-
-            // Create instance dynamically (no 'new' keyword)
-            object instance = Activator.CreateInstance(type);
-
-            // Invoke Add method dynamically
-            MethodInfo addMethod = type.GetMethod("Add");
-            object result = addMethod.Invoke(instance, new object[] { 10, 20 });
-            Console.WriteLine("Add(10, 20) = " + result);
-
-            // Invoke Multiply method dynamically
-            MethodInfo multiplyMethod = type.GetMethod("Multiply");
-            result = multiplyMethod.Invoke(instance, new object[] { 4, 5 });
-            Console.WriteLine("Multiply(4, 5) = " + result);
-        }
-    }
-}
-```
-
-### Part C — Load External Assembly & Inspect
-
-```csharp
-using System;
-using System.Reflection;
-
-namespace AssemblyInspect
-{
-    class Program
-    {
-        static void Main()
-        {
-            // Load the currently executing assembly
-            Assembly asm = Assembly.GetExecutingAssembly();
-
-            Console.WriteLine("Assembly: " + asm.FullName);
-            Console.WriteLine("\nTypes defined:");
-
-            foreach (Type t in asm.GetTypes())
+            // Print out every single public method the class has
+            Console.WriteLine("\n=== Available Methods ===");
+            foreach (MethodInfo method in inspectionTarget.GetMethods())
             {
-                Console.WriteLine("\n [Type] " + t.Name);
-                foreach (MethodInfo m in t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-                    Console.WriteLine("   Method: " + m.Name);
+                Console.WriteLine(" -> Found Method: " + method.Name);
+            }
+
+            // Print out every property the class has
+            Console.WriteLine("\n=== Available Properties ===");
+            foreach (PropertyInfo prop in inspectionTarget.GetProperties())
+            {
+                Console.WriteLine(" -> Found Property: " + prop.Name);
             }
         }
     }
 }
 ```
 
+### Part B: Executing a Method Dynamically
+
+This code proves that you can run a method inside a class without ever formally writing the method's name in your direct code logic.
+
+```csharp
+// File: DynamicInvokeDemo.cs
+using System;
+using System.Reflection;
+
+namespace ReflectionInvoke
+{
+    public class SecretCalculator
+    {
+        public int Multiply(int x, int y) => x * y;
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Type targetType = typeof(SecretCalculator);
+
+            Console.WriteLine("Creating the object dynamically...");
+            
+            // Create a brand new instance without using the 'new' keyword
+            object dynamicObject = Activator.CreateInstance(targetType);
+
+            // Find the multiplying method by searching its text name
+            MethodInfo mathMethod = targetType.GetMethod("Multiply");
+            
+            // Invoke (run) the method by passing in the number 5 and 6
+            object answer = mathMethod.Invoke(dynamicObject, new object[] { 5, 6 });
+            
+            Console.WriteLine("Dynamic Execution says: 5 x 6 = " + answer);
+        }
+    }
+}
+```
+
 ---
 
-## Expected Output
+## 4. Expected Output
 
-**Part A:**
-```
-=== Type Info ===
-Name: Calculator
+**Output - Part A:**
+```text
+=== Class Details ===
+Class Name: Calculator
 Namespace: ReflectionDemo
-Full Name: ReflectionDemo.Calculator
 
-=== Public Methods ===
- - Add(Int32 a, Int32 b) : Int32
- - Subtract(Int32 a, Int32 b) : Int32
- - get_Name() : String
- ...
+=== Available Methods ===
+ -> Found Method: Add
+ -> Found Method: Subtract
+ -> Found Method: get_Version
+ -> Found Method: set_Version
+ -> Found Method: GetType
+ -> Found Method: ToString
+ -> Found Method: Equals
+ -> Found Method: GetHashCode
 
-=== Properties ===
- - Name : String
+=== Available Properties ===
+ -> Found Property: Version
 ```
 
-**Part B:**
-```
-Add(10, 20) = 30
-Multiply(4, 5) = 20
+**Output - Part B:**
+```text
+Creating the object dynamically...
+Dynamic Execution says: 5 x 6 = 30
 ```
 
 ---
 
-## Viva Questions
+## 5. Viva / Discussion Questions
 
-1. What is Reflection in .NET? Name its main namespace.
-2. How do you create an instance of a class using Reflection?
-3. What is `BindingFlags` used for in Reflection?
-4. What is the difference between `GetMethod()` and `GetMethods()`?
-5. Name two practical uses of Reflection in real applications.
+1. **Definitions:** What does the term Reflection mean in the C# language? 
+2. **Namespaces:** What specific .NET namespace contains the Reflection classes?
+3. **Information Discovery:** What is the technical difference between using the `typeof` keyword and looking at a `MethodInfo` object?
+4. **Execution:** Explain the difference between using `new SecretCalculator()` and using `Activator.CreateInstance()`.
+5. **Practical Use Cases:** Where have you seen Reflection being used in real programming applications (for example, in Visual Studio IDE menus)?
 
 ---
 
-[Back to Index](../README.md)
+[Back to Main Index](../README.md)
