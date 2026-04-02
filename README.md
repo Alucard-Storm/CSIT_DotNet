@@ -4,13 +4,6 @@
 
 ---
 
-# QUICK LINKS & STUDY MATERIAL
-
-- [**Experiments**](./experiments/) - Full experiment files with aim, theory, code, and expected output.
-- [**Quick Notes**](./notes/) - Concise experiment-wise notes for fast revision.
-
----
-
 # 1. INTRODUCTION
 
 This laboratory manual is designed in accordance with the **CSIT-406 .NET Framework Lab syllabus** under the AICTE Flexible Curricula for IV Semester.
@@ -38,7 +31,7 @@ Each experiment uses the **.NET Framework 4.x** on Windows, with C# as the prima
 
 # 3. SOFTWARE REQUIREMENTS
 
-- **IDE**: Visual Studio 2019 / 2022 (Community or higher)
+- **IDE**: Visual Studio 2019 / 2026 (Community or higher)
 - **Framework**: .NET Framework 4.8
 - **Language**: C#
 - **OS**: Windows 10 / 11 (required for Windows Service experiments)
@@ -50,16 +43,16 @@ Each experiment uses the **.NET Framework 4.x** on Windows, with C# as the prima
 
 | No. | Topic | Experiment | Notes |
 |-----|-------|------------|-------|
-| 01 | Delegates and Callbacks | [**Exp01_Delegates.md**](experiments/Exp01_Delegates.md) | [Notes](notes/Exp01_Delegates_Notes.md) |
-| 02 | Role-Based and Permission-Based Security | [**Exp02_Security.md**](experiments/Exp02_Security.md) | [Notes](notes/Exp02_Security_Notes.md) |
-| 03 | COM+ Component Registration | [**Exp03_COM_Plus.md**](experiments/Exp03_COM_Plus.md) | [Notes](notes/Exp03_COM_Plus_Notes.md) |
-| 04 | Background Windows Service | [**Exp04_WindowsService.md**](experiments/Exp04_WindowsService.md) | [Notes](notes/Exp04_WindowsService_Notes.md) |
-| 05 | Client App to Control a Windows Service | [**Exp05_ServiceClient.md**](experiments/Exp05_ServiceClient.md) | [Notes](notes/Exp05_ServiceClient_Notes.md) |
-| 06 | Reflection — Inspect & Invoke Dynamically | [**Exp06_Reflection.md**](experiments/Exp06_Reflection.md) | [Notes](notes/Exp06_Reflection_Notes.md) |
-| 07 | Send Email via SMTP Client | [**Exp07_SMTP_Email.md**](experiments/Exp07_SMTP_Email.md) | [Notes](notes/Exp07_SMTP_Email_Notes.md) |
-| 08 | String vs StringBuilder Comparison | [**Exp08_String_StringBuilder.md**](experiments/Exp08_String_StringBuilder.md) | [Notes](notes/Exp08_String_StringBuilder_Notes.md) |
-| 09 | Data Retrieval and Upload using WebClient | [**Exp09_WebClient.md**](experiments/Exp09_WebClient.md) | [Notes](notes/Exp09_WebClient_Notes.md) |
-| 10 | Database Operations with ADO.NET | [**Exp10_ADO_NET.md**](experiments/Exp10_ADO_NET.md) | [Notes](notes/Exp10_ADO_NET_Notes.md) |
+| 01 | Delegates and Callbacks | [**Exp01_Delegates.md**](Experiment_01/Exp01_Delegates.md) | [Notes](Experiment_01/Exp01_Delegates_Notes.md) |
+| 02 | Role-Based and Permission-Based Security | [**Exp02_Security.md**](Experiment_02/Exp02_Security.md) | [Notes](Experiment_02/Exp02_Security_Notes.md) |
+| 03 | COM+ Component Registration | [**Exp03_COM_Plus.md**](Experiment_03/Exp03_COM_Plus.md) | [Notes](Experiment_03/Exp03_COM_Plus_Notes.md) |
+| 04 | Background Windows Service | [**Exp04_WindowsService.md**](Experiment_04/Exp04_WindowsService.md) | [Notes](Experiment_04/Exp04_WindowsService_Notes.md) |
+| 05 | Client App to Control a Windows Service | [**Exp05_ServiceClient.md**](Experiment_05/Exp05_ServiceClient.md) | [Notes](Experiment_05/Exp05_ServiceClient_Notes.md) |
+| 06 | Reflection — Inspect & Invoke Dynamically | [**Exp06_Reflection.md**](Experiment_06/Exp06_Reflection.md) | [Notes](Experiment_06/Exp06_Reflection_Notes.md) |
+| 07 | Send Email via SMTP Client | [**Exp07_SMTP_Email.md**](Experiment_07/Exp07_SMTP_Email.md) | [Notes](Experiment_07/Exp07_SMTP_Email_Notes.md) |
+| 08 | String vs StringBuilder Comparison | [**Exp08_String_StringBuilder.md**](Experiment_08/Exp08_String_StringBuilder.md) | [Notes](Experiment_08/Exp08_String_StringBuilder_Notes.md) |
+| 09 | Data Retrieval and Upload using WebClient | [**Exp09_WebClient.md**](Experiment_09/Exp09_WebClient.md) | [Notes](Experiment_09/Exp09_WebClient_Notes.md) |
+| 10 | Database Operations with ADO.NET | [**Exp10_ADO_NET.md**](Experiment_10/Exp10_ADO_NET.md) | [Notes](Experiment_10/Exp10_ADO_NET_Notes.md) |
 
 ---
 
