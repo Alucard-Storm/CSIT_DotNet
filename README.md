@@ -70,7 +70,19 @@ These experiments are **not part of the official CSIT-406 syllabus** but are pro
 | E06 | Exception Handling | [**Extra06_ExceptionHandling.md**](Extra/Extra_06/Extra06_ExceptionHandling.md) | [Notes](Extra/Extra_06/Extra06_ExceptionHandling_Notes.md) |
 | E07 | File I/O — Read and Write Files | [**Extra07_FileIO.md**](Extra/Extra_07/Extra07_FileIO.md) | [Notes](Extra/Extra_07/Extra07_FileIO_Notes.md) |
 
-> **Recommended order for beginners:** E01 → E02 → E03 → E04 → E05 → E06 → E07 → then proceed with Experiment 01 onwards.
+### 5b. Windows Forms (GUI) Experiments
+
+These experiments introduce GUI desktop application development using **Windows Forms (.NET Framework)**. Each builds on the previous one.
+
+| No. | Topic | Experiment | Notes |
+|-----|-------|------------|-------|
+| E08 | Hello World — First WinForms Window | [**Extra08_WinForms_Department of Computer Science & Information Technology Sagar Institute of Research & Technology (SIRT), BhopalHelloWorld.md**](Extra/Extra_08/Extra08_WinForms_HelloWorld.md) | [Notes](Extra/Extra_08/Extra08_WinForms_HelloWorld_Notes.md) |
+| E09 | Calculator — TextBox & Button | [**Extra09_WinForms_Calculator.md**](Extra/Extra_09/Extra09_WinForms_Calculator.md) | [Notes](Extra/Extra_09/Extra09_WinForms_Calculator_Notes.md) |
+| E10 | Login Form — Validation & Multiple Forms | [**Extra10_WinForms_Login.md**](Extra/Extra_10/Extra10_WinForms_Login.md) | [Notes](Extra/Extra_10/Extra10_WinForms_Login_Notes.md) |
+| E11 | To-Do List — ListBox & Collections | [**Extra11_WinForms_ToDoList.md**](Extra/Extra_11/Extra11_WinForms_ToDoList.md) | [Notes](Extra/Extra_11/Extra11_WinForms_ToDoList_Notes.md) |
+| E12 | Student Record Manager — CRUD & DataGridView | [**Extra12_WinForms_StudentRecord.md**](Extra/Extra_12/Extra12_WinForms_StudentRecord.md) | [Notes](Extra/Extra_12/Extra12_WinForms_StudentRecord_Notes.md) |
+
+> **Recommended order for beginners:** E01 → E02 → E03 → E04 → E05 → E06 → E07 → E08 → E09 → E10 → E11 → E12 → then proceed with Experiment 01 onwards.
 
 ---
 
@@ -103,5 +115,4 @@ This lab provides hands-on exposure to the core features of the Microsoft .NET F
 
 ---
 
-**Department of Computer Science & Information Technology**
-Rajiv Gandhi Proudyogiki Vishwavidyalaya (RGPV), Bhopal
+**Department of Computer Science & Information Technology**, Sagar Institute of Research & Technology (SIRT), Bhopal
